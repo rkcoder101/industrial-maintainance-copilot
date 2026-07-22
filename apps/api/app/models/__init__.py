@@ -4,7 +4,7 @@ from app.models.compliance import ComplianceFinding, ComplianceRule
 from app.models.documents import Chunk, Citation, Document, DocumentPage
 from app.models.events import Event, FailureEvent, Measurement
 from app.models.graph import GraphEdge
-from app.models.jobs import ExtractionRun, IngestionJob
+from app.models.jobs import ExtractionRun, IngestionItem, IngestionJob
 from app.models.maintenance import MaintenanceAction, Procedure, WorkOrder
 
 __all__ = [
@@ -21,6 +21,7 @@ __all__ = [
     "ExtractionRun",
     "FailureEvent",
     "GraphEdge",
+    "IngestionItem",
     "IngestionJob",
     "MaintenanceAction",
     "Measurement",

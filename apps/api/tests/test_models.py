@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import pytest
 
@@ -6,7 +7,7 @@ from app.models import Base
 from app.models.assets import Equipment
 from app.models.enums import Criticality, EventType, OperationalStatus
 from app.models.events import Event, FailureEvent
-from app.models.jobs import IngestionJob
+from app.models.jobs import IngestionItem, IngestionJob
 from app.models.maintenance import WorkOrder
 
 
@@ -28,6 +29,7 @@ def test_canonical_metadata_contains_required_tables() -> None:
         "graph_edges",
         "citations",
         "ingestion_jobs",
+        "ingestion_items",
         "extraction_runs",
     }.issubset(Base.metadata.tables)
 
@@ -91,3 +93,12 @@ def test_work_order_rejects_completion_before_opening() -> None:
 def test_ingestion_job_rejects_invalid_counts() -> None:
     with pytest.raises(ValueError, match="cannot exceed"):
         IngestionJob(total_files=1, processed_files=1, failed_files=1)
+
+
+def test_ingestion_item_rejects_invalid_counts_and_size() -> None:
+    item = IngestionItem(ingestion_job_id=uuid4(), original_filename="manual.pdf")
+
+    with pytest.raises(ValueError, match="attempt_count"):
+        item.attempt_count = -1
+    with pytest.raises(ValueError, match="actual_size_bytes"):
+        item.actual_size_bytes = -1

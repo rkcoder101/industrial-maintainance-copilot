@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 HOST_DATABASE_URL ?= postgresql+psycopg://maintenance:maintenance@localhost:5433/maintenance_copilot
 
-.PHONY: setup dev down logs migrate seed test lint format health clean
+.PHONY: setup dev down logs migrate migration-check seed test test-ingestion lint format health clean-uploads clean
 
 setup:
 	python3 -m venv apps/api/.venv
@@ -21,12 +21,18 @@ logs:
 migrate:
 	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/alembic upgrade head
 
+migration-check:
+	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/alembic check
+
 seed:
 	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/python -m app.db.seed
 
 test:
 	apps/api/.venv/bin/pytest apps/api
 	npm test
+
+test-ingestion:
+	apps/api/.venv/bin/pytest apps/api/tests/test_ingestion_*.py
 
 lint:
 	apps/api/.venv/bin/ruff check apps/api
@@ -42,6 +48,9 @@ health:
 	curl -fsS http://localhost:8000/api/v1/health
 	curl -fsS http://localhost:8000/api/v1/health/ready
 	curl -fsS http://localhost:3000/health
+
+clean-uploads:
+	cd apps/api && APP_ENV="$${APP_ENV:-development}" .venv/bin/python -m app.db.clean_uploads
 
 clean:
 	docker compose down --volumes --remove-orphans

@@ -43,6 +43,9 @@ services:
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/data/uploads}
       PARSED_DIR: ${PARSED_DIR:-/app/data/parsed}
       RENDERED_PAGES_DIR: ${RENDERED_PAGES_DIR:-/app/data/rendered-pages}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
+      MAX_BATCH_FILES: ${MAX_BATCH_FILES:-20}
+      ALLOWED_UPLOAD_EXTENSIONS: ${ALLOWED_UPLOAD_EXTENSIONS:-.pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg}
       SECRET_KEY: ${SECRET_KEY:-replace-this-in-real-environments}
     ports:
       - "${API_PORT:-8000}:8000"

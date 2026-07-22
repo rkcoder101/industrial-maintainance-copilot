@@ -4,9 +4,9 @@ Asset-centered foundation for a cited, explainable industrial maintenance knowle
 
 ## Current Status
 
-Phase 2 is complete. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant, Docker Compose, health endpoints, linting, tests, Alembic migrations, the canonical asset-centric relational model, seed equipment data, and read-only equipment APIs.
+Phase 3 is complete. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant, Docker Compose, health endpoints, linting, tests, Alembic migrations, the canonical asset-centric relational model, seed equipment data, read-only equipment APIs, and secure document-ingestion APIs.
 
-Document upload, parsing, OCR, chunking, LLM extraction, embeddings, retrieval, RCA, compliance evaluation, graph visualization, and frontend equipment pages are intentionally deferred.
+Parsing, OCR, chunking, LLM extraction, embeddings, retrieval, RCA, compliance evaluation, graph visualization, and frontend document/equipment pages are intentionally deferred.
 
 ## Architecture
 
@@ -85,6 +85,18 @@ make seed
 
 The seed is idempotent and upserts equipment by `equipment_tag`.
 
+Check for pending migration drift:
+
+```bash
+make migration-check
+```
+
+Clean local upload files in development or test only:
+
+```bash
+make clean-uploads
+```
+
 ## API Endpoints
 
 - `GET /api/v1/health`
@@ -92,6 +104,50 @@ The seed is idempotent and upserts equipment by `equipment_tag`.
 - `GET /api/v1/health/ready`
 - `GET /api/v1/equipment/`
 - `GET /api/v1/equipment/{equipment_tag_or_uuid}`
+- `POST /api/v1/ingestion/documents`
+- `GET /api/v1/ingestion/jobs/{job_id}`
+- `POST /api/v1/ingestion/jobs/{job_id}/retry`
+- `GET /api/v1/documents`
+- `GET /api/v1/documents/{document_id}`
+
+## Document Ingestion
+
+Supported formats: `.pdf`, `.docx`, `.xlsx`, `.csv`, `.txt`, `.png`, `.jpg`, and `.jpeg`.
+
+Default limits:
+
+- Maximum file size: 50 MB per file
+- Maximum batch size: 20 files
+
+Upload example:
+
+```bash
+curl -X POST \
+  http://localhost:8000/api/v1/ingestion/documents \
+  -F "files=@data/seeds/documents/sample.pdf" \
+  -F "files=@data/seeds/documents/inspection.csv" \
+  -F "source_type=maintenance_record"
+```
+
+Get a job:
+
+```bash
+curl -fsS http://localhost:8000/api/v1/ingestion/jobs/{job_id}
+```
+
+List registered documents:
+
+```bash
+curl -fsS "http://localhost:8000/api/v1/documents?page=1&page_size=20"
+```
+
+Duplicate policy: duplicates are detected by SHA-256. A duplicate upload is reported as an ingestion item with `status=duplicate`, references the existing document, does not create a second canonical `Document`, and does not store the file again.
+
+Storage behavior: files are written to a temporary file under `UPLOAD_DIR`, validated using bounded reads, and atomically moved to a generated relative storage key. API responses expose document IDs and safe metadata, not absolute filesystem paths or internal storage keys.
+
+Retry limitation: validation failures are not retryable because rejected request streams are discarded. The retry endpoint only retries retained post-validation internal failures, such as a storage or database failure that left a quarantined internal copy.
+
+Security limitations: Phase 3 validates file signatures and Office ZIP structure lightly, but it does not perform malware scanning. The scanner extension point reports `scanner_not_configured` until a real scanner such as ClamAV is integrated.
 
 ## Testing
 
@@ -99,7 +155,7 @@ The seed is idempotent and upserts equipment by `equipment_tag`.
 make test
 ```
 
-Backend tests cover application import, liveness, readiness response shape, settings validation, model rules, migration coverage, repositories, seed idempotency, and equipment APIs. Frontend tests cover a basic rendered component.
+Backend tests cover application import, liveness, readiness response shape, settings validation, model rules, migration coverage, repositories, seed idempotency, equipment APIs, ingestion validation, storage, services, retry behavior, and document APIs. Frontend tests cover a basic rendered component.
 
 ## Linting And Type Checks
 
@@ -124,4 +180,4 @@ make format
 
 ## Next Phase
 
-Phase 3 should implement document ingestion: upload APIs, file validation, checksums, job status, document storage, parser interface placeholders, and page rendering foundations.
+Phase 4 should implement parsing and chunking foundations: parser interfaces, Docling/PyMuPDF integration, normalized page/block output, parser diagnostics, and structure-aware chunk creation.

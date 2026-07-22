@@ -113,3 +113,11 @@ class JobStatus(StrEnum):
     COMPLETED = "completed"
     COMPLETED_WITH_ERRORS = "completed_with_errors"
     FAILED = "failed"
+
+
+class IngestionItemStatus(StrEnum):
+    PENDING = "pending"
+    VALIDATING = "validating"
+    STORED = "stored"
+    DUPLICATE = "duplicate"
+    FAILED = "failed"

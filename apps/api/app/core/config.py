@@ -1,8 +1,11 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEFAULT_ALLOWED_UPLOAD_EXTENSIONS = ".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg"
 
 
 class Settings(BaseSettings):
@@ -27,6 +30,8 @@ class Settings(BaseSettings):
     parsed_dir: str = "/app/data/parsed"
     rendered_pages_dir: str = "/app/data/rendered-pages"
     max_upload_mb: int = Field(default=50, ge=1)
+    max_batch_files: int = Field(default=20, ge=1)
+    allowed_upload_extensions: str = DEFAULT_ALLOWED_UPLOAD_EXTENSIONS
 
     secret_key: str = "replace-this-in-real-environments"
     cors_origins: str = "http://localhost:3000"
@@ -34,6 +39,45 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def upload_root_path(self) -> Path:
+        return Path(self.upload_dir).expanduser().resolve()
+
+    @property
+    def upload_temp_path(self) -> Path:
+        return self.upload_root_path / ".tmp"
+
+    @property
+    def max_upload_bytes(self) -> int:
+        return self.max_upload_mb * 1024 * 1024
+
+    @property
+    def allowed_upload_extension_set(self) -> frozenset[str]:
+        return frozenset(
+            extension.strip().lower()
+            for extension in self.allowed_upload_extensions.split(",")
+            if extension.strip()
+        )
+
+    @field_validator("allowed_upload_extensions")
+    @classmethod
+    def validate_allowed_upload_extensions(cls, value: str) -> str:
+        normalized: list[str] = []
+        for raw_extension in value.split(","):
+            extension = raw_extension.strip().lower()
+            if not extension:
+                continue
+            if "/" in extension or "\\" in extension or "\x00" in extension:
+                raise ValueError("upload extensions cannot contain path separators or null bytes")
+            if not extension.startswith("."):
+                extension = f".{extension}"
+            if extension == ".":
+                raise ValueError("upload extensions cannot be empty")
+            normalized.append(extension)
+        if not normalized:
+            raise ValueError("at least one upload extension must be configured")
+        return ",".join(dict.fromkeys(normalized))
 
 
 @lru_cache

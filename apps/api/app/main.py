@@ -6,9 +6,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import equipment, health
+from app.api.v1 import documents, equipment, health, ingestion
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.services.ingestion_errors import IngestionError
 
 settings = get_settings()
 configure_logging(settings.app_env)
@@ -38,6 +39,8 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(equipment.router, prefix="/api/v1")
+app.include_router(ingestion.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")
 
 
 @app.exception_handler(RequestValidationError)
@@ -69,6 +72,21 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
                 "code": "http_error",
                 "message": str(exc.detail),
                 "details": {},
+            }
+        },
+    )
+
+
+@app.exception_handler(IngestionError)
+async def ingestion_exception_handler(request: Request, exc: IngestionError) -> JSONResponse:
+    logger.info("request.ingestion_error", extra={"path": request.url.path, "code": exc.code})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+                "details": exc.details,
             }
         },
     )
