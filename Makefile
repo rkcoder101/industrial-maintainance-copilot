@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 HOST_DATABASE_URL ?= postgresql+psycopg://maintenance:maintenance@localhost:5433/maintenance_copilot
 
-.PHONY: setup dev down logs migrate migration-check seed test test-ingestion lint format health clean-uploads clean
+.PHONY: setup dev down logs migrate migration-check seed process-demo-documents test test-ingestion test-parsing lint format health clean-uploads clean-parsed clean
 
 setup:
 	python3 -m venv apps/api/.venv
@@ -27,12 +27,18 @@ migration-check:
 seed:
 	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/python -m app.db.seed
 
+process-demo-documents:
+	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/python -m app.db.process_demo_documents
+
 test:
 	apps/api/.venv/bin/pytest apps/api
 	npm test
 
 test-ingestion:
 	apps/api/.venv/bin/pytest apps/api/tests/test_ingestion_*.py
+
+test-parsing:
+	apps/api/.venv/bin/pytest apps/api/tests/test_processing_*.py apps/api/tests/test_parsers.py apps/api/tests/test_chunking.py
 
 lint:
 	apps/api/.venv/bin/ruff check apps/api
@@ -51,6 +57,9 @@ health:
 
 clean-uploads:
 	cd apps/api && APP_ENV="$${APP_ENV:-development}" .venv/bin/python -m app.db.clean_uploads
+
+clean-parsed:
+	cd apps/api && APP_ENV="$${APP_ENV:-development}" .venv/bin/python -m app.db.clean_parsed
 
 clean:
 	docker compose down --volumes --remove-orphans

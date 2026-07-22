@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     max_upload_mb: int = Field(default=50, ge=1)
     max_batch_files: int = Field(default=20, ge=1)
     allowed_upload_extensions: str = DEFAULT_ALLOWED_UPLOAD_EXTENSIONS
+    ocr_enabled: bool = True
+    ocr_language: str = "eng"
+    ocr_min_text_characters: int = Field(default=30, ge=0)
+    page_render_dpi: int = Field(default=150, ge=72, le=300)
+    chunk_target_tokens: int = Field(default=500, gt=0)
+    chunk_max_tokens: int = Field(default=800, gt=0)
+    chunk_overlap_tokens: int = Field(default=75, ge=0)
 
     secret_key: str = "replace-this-in-real-environments"
     cors_origins: str = "http://localhost:3000"
@@ -47,6 +54,18 @@ class Settings(BaseSettings):
     @property
     def upload_temp_path(self) -> Path:
         return self.upload_root_path / ".tmp"
+
+    @property
+    def rendered_pages_root_path(self) -> Path:
+        return Path(self.rendered_pages_dir).expanduser().resolve()
+
+    @property
+    def rendered_pages_temp_path(self) -> Path:
+        return self.rendered_pages_root_path / ".tmp"
+
+    @property
+    def parsed_root_path(self) -> Path:
+        return Path(self.parsed_dir).expanduser().resolve()
 
     @property
     def max_upload_bytes(self) -> int:
@@ -78,6 +97,24 @@ class Settings(BaseSettings):
         if not normalized:
             raise ValueError("at least one upload extension must be configured")
         return ",".join(dict.fromkeys(normalized))
+
+    @field_validator("ocr_language")
+    @classmethod
+    def validate_ocr_language(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("OCR language cannot be empty")
+        if any(character in normalized for character in "/\\\x00"):
+            raise ValueError("OCR language cannot contain path separators or null bytes")
+        return normalized
+
+    def model_post_init(self, __context: object) -> None:
+        if self.chunk_max_tokens < self.chunk_target_tokens:
+            raise ValueError(
+                "CHUNK_MAX_TOKENS must be greater than or equal to CHUNK_TARGET_TOKENS"
+            )
+        if self.chunk_overlap_tokens >= self.chunk_max_tokens:
+            raise ValueError("CHUNK_OVERLAP_TOKENS must be less than CHUNK_MAX_TOKENS")
 
 
 @lru_cache

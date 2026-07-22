@@ -26,6 +26,34 @@ class ParseStatus(StrEnum):
     FAILED = "failed"
 
 
+class BlockType(StrEnum):
+    HEADING = "heading"
+    PARAGRAPH = "paragraph"
+    LIST = "list"
+    TABLE = "table"
+    TABLE_ROW = "table_row"
+    CAPTION = "caption"
+    HEADER = "header"
+    FOOTER = "footer"
+    FORM_FIELD = "form_field"
+    IMAGE_TEXT = "image_text"
+    UNKNOWN = "unknown"
+
+
+class ChunkKind(StrEnum):
+    MANUAL_SECTION = "manual_section"
+    PROCEDURE = "procedure"
+    INCIDENT = "incident"
+    INSPECTION = "inspection"
+    MAINTENANCE_RECORD = "maintenance_record"
+    CHECKLIST = "checklist"
+    TABLE = "table"
+    SPREADSHEET_ROWS = "spreadsheet_rows"
+    GENERAL_TEXT = "general_text"
+    IMAGE_OCR = "image_ocr"
+    UNKNOWN = "unknown"
+
+
 class EventType(StrEnum):
     FAILURE = "failure"
     INSPECTION = "inspection"
