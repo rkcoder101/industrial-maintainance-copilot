@@ -4,7 +4,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, Index, String, UniqueConstra
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON, Uuid
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, MetadataMixin, ProvenanceMixin, TimestampMixin, UUIDPrimaryKeyMixin
 from app.models.constraints import enum_check
 from app.models.enums import Criticality, OperationalStatus
 
@@ -52,6 +52,11 @@ class Equipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    aliases: Mapped[list["EquipmentAlias"]] = relationship(
+        back_populates="equipment",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class Component(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -82,3 +87,27 @@ class Component(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     equipment: Mapped[Equipment] = relationship(back_populates="components")
+
+
+class EquipmentAlias(UUIDPrimaryKeyMixin, ProvenanceMixin, MetadataMixin, TimestampMixin, Base):
+    __tablename__ = "equipment_aliases"
+    __table_args__ = (
+        UniqueConstraint("equipment_id", "alias", name="uq_equipment_aliases_equipment_alias"),
+        CheckConstraint(
+            "confidence is null or (confidence >= 0 and confidence <= 1)",
+            name="ck_equipment_aliases_confidence",
+        ),
+        Index("ix_equipment_aliases_equipment_id", "equipment_id"),
+        Index("ix_equipment_aliases_alias", "alias"),
+        Index("ix_equipment_aliases_source_chunk_id", "source_chunk_id"),
+    )
+
+    equipment_id: Mapped[Any] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("equipment.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    alias: Mapped[str] = mapped_column(String(160), nullable=False)
+    alias_type: Mapped[str] = mapped_column(String(80), nullable=False, default="extracted")
+
+    equipment: Mapped[Equipment] = relationship(back_populates="aliases")

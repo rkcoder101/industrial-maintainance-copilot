@@ -31,6 +31,9 @@ def test_canonical_metadata_contains_required_tables() -> None:
         "ingestion_jobs",
         "ingestion_items",
         "extraction_runs",
+        "chunk_extraction_runs",
+        "extracted_facts",
+        "equipment_aliases",
     }.issubset(Base.metadata.tables)
 
 

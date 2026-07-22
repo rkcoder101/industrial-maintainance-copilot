@@ -39,6 +39,19 @@ class Settings(BaseSettings):
     chunk_target_tokens: int = Field(default=500, gt=0)
     chunk_max_tokens: int = Field(default=800, gt=0)
     chunk_overlap_tokens: int = Field(default=75, ge=0)
+    extraction_enabled: bool = True
+    extraction_provider: Literal["mock", "ollama"] = "mock"
+    extraction_model: str = "maintenance-extraction-mock"
+    extraction_api_base_url: str | None = None
+    extraction_api_key: str | None = None
+    extraction_timeout_seconds: int = Field(default=30, ge=1, le=300)
+    extraction_max_retries: int = Field(default=2, ge=0, le=5)
+    extraction_concurrency: int = Field(default=1, ge=1, le=8)
+    extraction_min_confidence: float = Field(default=0.55, ge=0, le=1)
+    extraction_auto_accept_confidence: float = Field(default=0.85, ge=0, le=1)
+    extraction_max_chunk_characters: int = Field(default=6000, ge=500, le=20000)
+    extraction_prompt_version: str = "maintenance_extraction_v1"
+    ollama_base_url: str = "http://localhost:11434"
 
     secret_key: str = "replace-this-in-real-environments"
     cors_origins: str = "http://localhost:3000"
@@ -115,6 +128,11 @@ class Settings(BaseSettings):
             )
         if self.chunk_overlap_tokens >= self.chunk_max_tokens:
             raise ValueError("CHUNK_OVERLAP_TOKENS must be less than CHUNK_MAX_TOKENS")
+        if self.extraction_auto_accept_confidence < self.extraction_min_confidence:
+            raise ValueError(
+                "EXTRACTION_AUTO_ACCEPT_CONFIDENCE must be greater than or equal to "
+                "EXTRACTION_MIN_CONFIDENCE"
+            )
 
 
 @lru_cache

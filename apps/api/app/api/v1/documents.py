@@ -17,7 +17,13 @@ from app.schemas.documents import (
     DocumentRead,
     ProcessingResponse,
 )
+from app.schemas.extraction import (
+    DocumentExtractionStatusRead,
+    ExtractionResponse,
+    ExtractionRunRead,
+)
 from app.services.documents import DocumentService
+from app.services.extraction import DocumentExtractionService
 from app.services.processing import DocumentProcessingService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -134,6 +140,42 @@ async def get_document_chunk(document_id: UUID, chunk_id: UUID) -> ChunkRead:
         return DocumentProcessingService(session, settings=get_settings()).get_chunk(
             document_id, chunk_id
         )
+
+
+@router.post("/{document_id}/extract", response_model=ExtractionResponse)
+async def extract_document(
+    document_id: UUID,
+    force: bool = Query(default=False),
+) -> ExtractionResponse:
+    with SessionLocal() as session:
+        return DocumentExtractionService(session, settings=get_settings()).extract_document(
+            document_id,
+            force=force,
+        )
+
+
+@router.post("/{document_id}/extract/retry", response_model=ExtractionResponse)
+async def retry_document_extraction(
+    document_id: UUID,
+    force: bool = Query(default=False),
+) -> ExtractionResponse:
+    with SessionLocal() as session:
+        return DocumentExtractionService(session, settings=get_settings()).retry_document(
+            document_id,
+            force=force,
+        )
+
+
+@router.get("/{document_id}/extraction", response_model=DocumentExtractionStatusRead)
+async def get_document_extraction_status(document_id: UUID) -> DocumentExtractionStatusRead:
+    with SessionLocal() as session:
+        return DocumentExtractionService(session, settings=get_settings()).get_status(document_id)
+
+
+@router.get("/{document_id}/extraction/runs", response_model=list[ExtractionRunRead])
+async def list_document_extraction_runs(document_id: UUID) -> list[ExtractionRunRead]:
+    with SessionLocal() as session:
+        return DocumentExtractionService(session, settings=get_settings()).list_runs(document_id)
 
 
 @router.get("/{document_id}", response_model=DocumentRead)

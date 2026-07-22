@@ -4,9 +4,9 @@ Asset-centered foundation for a cited, explainable industrial maintenance knowle
 
 ## Current Status
 
-Phase 3 is complete. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant, Docker Compose, health endpoints, linting, tests, Alembic migrations, the canonical asset-centric relational model, seed equipment data, read-only equipment APIs, and secure document-ingestion APIs.
+Phase 5 is complete. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant health integration, Docker Compose, Alembic migrations, an asset-centric canonical relational model, seed equipment data, secure document ingestion, parsing/OCR/chunking, and structured extraction APIs with provenance-rich fact auditing.
 
-Parsing, OCR, chunking, LLM extraction, embeddings, retrieval, RCA, compliance evaluation, graph visualization, and frontend document/equipment pages are intentionally deferred.
+Embeddings, document-content indexing in Qdrant, retrieval, RCA, automated compliance findings, graph visualization, and frontend document/equipment pages are intentionally deferred.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ packages/shared-types
 - `packages/shared-types`: shared TypeScript API response contracts.
 - `data`: local runtime directories for future uploads, parsed output, rendered pages, and seeds.
 
-The canonical database model is centered on `equipment` and includes components, documents, pages, chunks, events, failure details, measurements, procedures, maintenance actions, work orders, compliance rules/findings, graph edges, citations, ingestion jobs, and extraction runs.
+The canonical database model is centered on `equipment` and includes components, documents, pages, blocks, chunks, events, failure details, measurements, procedures, maintenance actions, work orders, compliance rules/findings, graph edges, citations, ingestion jobs, processing runs, extraction runs, chunk extraction runs, extracted facts, and equipment aliases.
 
 ## Prerequisites
 
@@ -97,6 +97,14 @@ Clean local upload files in development or test only:
 make clean-uploads
 ```
 
+Process parsed artifacts and run structured extraction over local documents:
+
+```bash
+make process-demo-documents
+make extract-demo-documents
+make extraction-status
+```
+
 ## API Endpoints
 
 - `GET /api/v1/health`
@@ -109,6 +117,22 @@ make clean-uploads
 - `POST /api/v1/ingestion/jobs/{job_id}/retry`
 - `GET /api/v1/documents`
 - `GET /api/v1/documents/{document_id}`
+- `POST /api/v1/documents/{document_id}/process`
+- `POST /api/v1/documents/{document_id}/process/retry`
+- `GET /api/v1/documents/{document_id}/processing`
+- `GET /api/v1/documents/{document_id}/processing/runs`
+- `GET /api/v1/documents/{document_id}/pages`
+- `GET /api/v1/documents/{document_id}/pages/{page_number}`
+- `GET /api/v1/documents/{document_id}/pages/{page_number}/image`
+- `GET /api/v1/documents/{document_id}/chunks`
+- `GET /api/v1/documents/{document_id}/chunks/{chunk_id}`
+- `POST /api/v1/documents/{document_id}/extract`
+- `POST /api/v1/documents/{document_id}/extract/retry`
+- `GET /api/v1/documents/{document_id}/extraction`
+- `GET /api/v1/documents/{document_id}/extraction/runs`
+- `GET /api/v1/extraction/runs/{run_id}`
+- `GET /api/v1/extraction/runs/{run_id}/facts`
+- `GET /api/v1/extraction/facts/{fact_id}`
 
 ## Document Ingestion
 
@@ -149,13 +173,31 @@ Retry limitation: validation failures are not retryable because rejected request
 
 Security limitations: Phase 3 validates file signatures and Office ZIP structure lightly, but it does not perform malware scanning. The scanner extension point reports `scanner_not_configured` until a real scanner such as ClamAV is integrated.
 
+## Document Processing
+
+Phase 4 processing turns uploaded files into pages, structural blocks, rendered page images where supported, and deterministic chunks with citation labels. Supported parsers cover PDF, DOCX, XLSX, CSV, TXT, PNG, JPG, and JPEG. PDFs use PyMuPDF with an explicit fallback warning until a richer layout parser is introduced.
+
+Processing is synchronous in the API for now. Force processing replaces parsed pages, blocks, chunks, and rendered images while preserving processing run history.
+
+## Structured Extraction
+
+Phase 5 extraction reads parsed chunks and writes audited facts plus conservative canonical records. The default provider is `mock`, so local tests and demos do not require a paid API key. Optional local Ollama can be enabled with `EXTRACTION_PROVIDER=ollama` and `OLLAMA_BASE_URL`.
+
+Extraction records candidate signals, chunk-level provider attempts, strict validation outcomes, confidence gates, evidence spans, source document/page/chunk IDs, duplicate status, and canonical links where a fact is accepted. Compliance candidates and relationships are staged for review; Phase 5 does not create compliance findings, embeddings, retrieval indexes, or Qdrant document vectors.
+
 ## Testing
 
 ```bash
 make test
 ```
 
-Backend tests cover application import, liveness, readiness response shape, settings validation, model rules, migration coverage, repositories, seed idempotency, equipment APIs, ingestion validation, storage, services, retry behavior, and document APIs. Frontend tests cover a basic rendered component.
+Backend tests cover application import, liveness, readiness response shape, settings validation, model rules, migration coverage, repositories, seed idempotency, equipment APIs, ingestion validation, storage, parsing, chunking, extraction validation, idempotency, retry behavior, provenance, and document/extraction APIs. Frontend tests cover a basic rendered component.
+
+Run only extraction tests with the mock provider:
+
+```bash
+make test-extraction
+```
 
 ## Linting And Type Checks
 
@@ -176,8 +218,10 @@ make format
 - If Postgres or Qdrant readiness is down, run `docker compose ps` and `docker compose logs api postgres qdrant`.
 - If ports are busy, change `API_PORT`, `WEB_PORT`, or Compose port mappings before starting services.
 - If frontend health cannot reach the API in Docker, confirm `API_INTERNAL_BASE_URL=http://api:8000`.
-- If local tooling is missing, install Node.js 20+, npm 10+, Python 3.12+, and Docker Compose v2.
+- If local tooling is missing, install Node.js 20.19+, npm 10+, Python 3.12+, and Docker Compose v2.
+- If extraction returns `extraction_not_ready`, process the document first with `POST /api/v1/documents/{document_id}/process`.
+- If Ollama extraction fails, confirm `OLLAMA_BASE_URL` is reachable from the API process. The mock provider remains the default for automated tests.
 
 ## Next Phase
 
-Phase 4 should implement parsing and chunking foundations: parser interfaces, Docling/PyMuPDF integration, normalized page/block output, parser diagnostics, and structure-aware chunk creation.
+Phase 6 should add embeddings and retrieval over the Phase 4/5 artifacts without weakening provenance or local/offline test behavior.

@@ -6,9 +6,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import documents, equipment, health, ingestion
+from app.api.v1 import documents, equipment, extraction, health, ingestion
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.services.extraction_errors import ExtractionError
 from app.services.ingestion_errors import IngestionError
 from app.services.processing_errors import DocumentProcessingError
 
@@ -42,6 +43,7 @@ app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(equipment.router, prefix="/api/v1")
 app.include_router(ingestion.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
+app.include_router(extraction.router, prefix="/api/v1")
 
 
 @app.exception_handler(RequestValidationError)
@@ -104,6 +106,21 @@ async def processing_exception_handler(
             "error": {
                 "code": exc.code,
                 "message": exc.message,
+                "details": exc.details,
+            }
+        },
+    )
+
+
+@app.exception_handler(ExtractionError)
+async def extraction_exception_handler(request: Request, exc: ExtractionError) -> JSONResponse:
+    logger.info("request.extraction_error", extra={"path": request.url.path, "code": exc.code})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.safe_message,
                 "details": exc.details,
             }
         },

@@ -149,3 +149,31 @@ class IngestionItemStatus(StrEnum):
     STORED = "stored"
     DUPLICATE = "duplicate"
     FAILED = "failed"
+
+
+class ChunkExtractionStatus(StrEnum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    SKIPPED = "skipped"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class ExtractionFactType(StrEnum):
+    EQUIPMENT_MENTION = "equipment_mention"
+    EVENT = "event"
+    FAILURE_EVENT = "failure_event"
+    MEASUREMENT = "measurement"
+    MAINTENANCE_ACTION = "maintenance_action"
+    WORK_ORDER = "work_order"
+    PROCEDURE = "procedure"
+    COMPLIANCE_CANDIDATE = "compliance_candidate"
+    RELATIONSHIP = "relationship"
+
+
+class ExtractionFactStatus(StrEnum):
+    STAGED = "staged"
+    ACCEPTED = "accepted"
+    DUPLICATE = "duplicate"
+    REJECTED = "rejected"
+    ERROR = "error"

@@ -1,5 +1,5 @@
 from app.db.base import Base
-from app.models.assets import Component, Equipment
+from app.models.assets import Component, Equipment, EquipmentAlias
 from app.models.compliance import ComplianceFinding, ComplianceRule
 from app.models.documents import (
     Chunk,
@@ -11,7 +11,13 @@ from app.models.documents import (
 )
 from app.models.events import Event, FailureEvent, Measurement
 from app.models.graph import GraphEdge
-from app.models.jobs import ExtractionRun, IngestionItem, IngestionJob
+from app.models.jobs import (
+    ChunkExtractionRun,
+    ExtractedFact,
+    ExtractionRun,
+    IngestionItem,
+    IngestionJob,
+)
 from app.models.maintenance import MaintenanceAction, Procedure, WorkOrder
 
 __all__ = [
@@ -26,7 +32,10 @@ __all__ = [
     "DocumentPage",
     "DocumentProcessingRun",
     "Equipment",
+    "EquipmentAlias",
     "Event",
+    "ChunkExtractionRun",
+    "ExtractedFact",
     "ExtractionRun",
     "FailureEvent",
     "GraphEdge",
