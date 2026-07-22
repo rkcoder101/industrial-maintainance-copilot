@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
-    database_url: str = "postgresql+psycopg://maintenance:maintenance@localhost:5432/maintenance_copilot"
+    database_url: str = (
+        "postgresql+psycopg://maintenance:maintenance@localhost:5432/maintenance_copilot"
+    )
     qdrant_url: str = "http://localhost:6333"
     qdrant_api_key: str | None = None
 

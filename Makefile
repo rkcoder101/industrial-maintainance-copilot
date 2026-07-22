@@ -1,6 +1,7 @@
 SHELL := /bin/bash
+HOST_DATABASE_URL ?= postgresql+psycopg://maintenance:maintenance@localhost:5433/maintenance_copilot
 
-.PHONY: setup dev down logs test lint format health clean
+.PHONY: setup dev down logs migrate seed test lint format health clean
 
 setup:
 	python3 -m venv apps/api/.venv
@@ -16,6 +17,12 @@ down:
 
 logs:
 	docker compose logs -f
+
+migrate:
+	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/alembic upgrade head
+
+seed:
+	cd apps/api && DATABASE_URL="$(HOST_DATABASE_URL)" .venv/bin/python -m app.db.seed
 
 test:
 	apps/api/.venv/bin/pytest apps/api

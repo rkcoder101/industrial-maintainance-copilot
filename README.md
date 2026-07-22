@@ -4,7 +4,9 @@ Asset-centered foundation for a cited, explainable industrial maintenance knowle
 
 ## Current Status
 
-Phase 1 is infrastructure only. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant, Docker Compose, health endpoints, linting, and test foundations. Document ingestion, extraction, retrieval, RCA, compliance, graph features, and demo data are intentionally deferred.
+Phase 2 is complete. The repository contains a Next.js frontend, FastAPI backend, PostgreSQL, Qdrant, Docker Compose, health endpoints, linting, tests, Alembic migrations, the canonical asset-centric relational model, seed equipment data, and read-only equipment APIs.
+
+Document upload, parsing, OCR, chunking, LLM extraction, embeddings, retrieval, RCA, compliance evaluation, graph visualization, and frontend equipment pages are intentionally deferred.
 
 ## Architecture
 
@@ -19,6 +21,8 @@ packages/shared-types
 - `apps/api`: FastAPI, Pydantic settings, SQLAlchemy connectivity, Qdrant client.
 - `packages/shared-types`: shared TypeScript API response contracts.
 - `data`: local runtime directories for future uploads, parsed output, rendered pages, and seeds.
+
+The canonical database model is centered on `equipment` and includes components, documents, pages, chunks, events, failure details, measurements, procedures, maintenance actions, work orders, compliance rules/findings, graph edges, citations, ingestion jobs, and extraction runs.
 
 ## Prerequisites
 
@@ -65,13 +69,37 @@ Stop services:
 make down
 ```
 
+## Database Migrations And Seeds
+
+Run migrations against the Docker Postgres host port:
+
+```bash
+make migrate
+```
+
+Seed the Phase 2 demo equipment registry:
+
+```bash
+make seed
+```
+
+The seed is idempotent and upserts equipment by `equipment_tag`.
+
+## API Endpoints
+
+- `GET /api/v1/health`
+- `GET /api/v1/health/live`
+- `GET /api/v1/health/ready`
+- `GET /api/v1/equipment/`
+- `GET /api/v1/equipment/{equipment_tag_or_uuid}`
+
 ## Testing
 
 ```bash
 make test
 ```
 
-Backend tests cover application import, liveness, readiness response shape, and settings validation. Frontend tests cover a basic rendered component.
+Backend tests cover application import, liveness, readiness response shape, settings validation, model rules, migration coverage, repositories, seed idempotency, and equipment APIs. Frontend tests cover a basic rendered component.
 
 ## Linting And Type Checks
 
@@ -96,4 +124,4 @@ make format
 
 ## Next Phase
 
-Phase 2 should add the canonical SQLAlchemy data model, Pydantic schemas, Alembic migrations, repositories, and seed equipment only.
+Phase 3 should implement document ingestion: upload APIs, file validation, checksums, job status, document storage, parser interface placeholders, and page rendering foundations.

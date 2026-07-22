@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "FastAPI backend for the Industrial Maintenance Knowledge Copilot."
 requires-python = ">=3.12"
 dependencies = [
+  "alembic>=1.14.0,<2.0.0",
   "fastapi>=0.115.0,<1.0.0",
   "pydantic-settings>=2.6.0,<3.0.0",
   "psycopg[binary]>=3.2.0,<4.0.0",
@@ -39,6 +40,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

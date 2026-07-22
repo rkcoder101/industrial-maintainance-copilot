@@ -1,0 +1,104 @@
+[
+  {
+    "equipment_tag": "P-101",
+    "name": "Feed Pump A",
+    "equipment_class": "centrifugal_pump",
+    "site": "Plant-1",
+    "system": "Feedwater",
+    "criticality": "safety_critical",
+    "manufacturer": "Wilo",
+    "model": "Demo-Pump-X",
+    "serial_number": "P101-SN-0001",
+    "operational_status": "active",
+    "description": "Primary feedwater pump used for the recurring seal-leak demo story.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  },
+  {
+    "equipment_tag": "C-201",
+    "name": "Instrument Air Compressor",
+    "equipment_class": "compressor",
+    "site": "Plant-1",
+    "system": "Utilities",
+    "criticality": "high",
+    "manufacturer": "Atlas Copco",
+    "model": "Demo-Compress-200",
+    "serial_number": "C201-SN-0001",
+    "operational_status": "standby",
+    "description": "Compressor asset reserved for later vibration and overheating examples.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  },
+  {
+    "equipment_tag": "M-301",
+    "name": "Cooling Water Motor",
+    "equipment_class": "motor",
+    "site": "Plant-1",
+    "system": "Cooling Water",
+    "criticality": "medium",
+    "manufacturer": "NORD",
+    "model": "Demo-Motor-75",
+    "serial_number": "M301-SN-0001",
+    "operational_status": "active",
+    "description": "Motor asset reserved for later insulation-test and maintenance-log examples.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  },
+  {
+    "equipment_tag": "HX-401",
+    "name": "Process Heat Exchanger",
+    "equipment_class": "heat_exchanger",
+    "site": "Plant-1",
+    "system": "Process",
+    "criticality": "high",
+    "manufacturer": "Demo Fabrication",
+    "model": "HX-Demo-401",
+    "serial_number": "HX401-SN-0001",
+    "operational_status": "active",
+    "description": "Heat exchanger asset reserved for later fouling and cleaning examples.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  },
+  {
+    "equipment_tag": "CV-501",
+    "name": "Feed Control Valve",
+    "equipment_class": "control_valve",
+    "site": "Plant-1",
+    "system": "Feedwater",
+    "criticality": "medium",
+    "manufacturer": "Demo Controls",
+    "model": "CV-Demo-501",
+    "serial_number": "CV501-SN-0001",
+    "operational_status": "active",
+    "description": "Control valve asset reserved for later calibration examples.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  },
+  {
+    "equipment_tag": "UL-601",
+    "name": "Utility Transfer Line",
+    "equipment_class": "utility_line",
+    "site": "Plant-1",
+    "system": "Utilities",
+    "criticality": "low",
+    "manufacturer": "Demo Piping",
+    "model": "Line-Demo-601",
+    "serial_number": "UL601-SN-0001",
+    "operational_status": "active",
+    "description": "Utility line asset reserved for later diagram and subsystem examples.",
+    "metadata_json": {
+      "seed_source": "phase_02",
+      "demo_asset": true
+    }
+  }
+]

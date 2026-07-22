@@ -1,1 +1,8 @@
-Alembic migrations will be introduced with the canonical data model in Phase 2.
+Alembic migrations for the FastAPI/PostgreSQL service live here.
+
+Use the repository-level helpers from the project root:
+
+- `make migrate` applies migrations to Docker PostgreSQL via the host port.
+- `make seed` loads the idempotent Phase 2 demo equipment registry.
+
+The initial Phase 2 migration creates the canonical asset-centric data model.
